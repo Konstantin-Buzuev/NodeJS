@@ -1,0 +1,18 @@
+{
+  "name": "Lesson1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "hello-npm.js",
+  "dependencies": {
+    "ansi": "^0.3.1",
+    "beeper": "^2.0.0",
+    "chalk": "^3.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
