@@ -4,3 +4,4 @@ const log = console.log;
 log(chalk.green("Hello there!"));
 log(chalk.green.bgGrey.bold("I'm a new script!"));
 beeper("*---**---*--**");
+log("Done!");
