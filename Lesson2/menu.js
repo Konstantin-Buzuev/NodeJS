@@ -2,26 +2,28 @@ const chalk = require("chalk")
 const inquirer = require("inquirer")
 const log = console.log
 
-function repeat(count, symbol) {
+module.exports = function repeat(count, symbol) {
     let result = ""
     for (let i = 0; i < count; i++) result += symbol
     return result
 }
 
 module.exports = class menuItem {
-    constructor(_name, _title, _message = "", _obj = null, _messageModifer = null, _parent = null, _action = null) {
-        this.name = _name //String - внутреннее имя пункта меню (например, options)
-        this.title = _title //String - название пункта меню (например, "Опции")
-        this.message = _message //String - сообщение, выводимое при выборе пункта меню (например, "Выберите ваши действия")
-        this.messageModifer = _messageModifer // Function функция, возвращающая строку, добавляемую в сообщение в зависимости от свойств obj
-        this.parent = _parent // menuItem - родитель, чтобы знать куда возвращаться
-        this.action = _action // function on object - функция, выполняемая в объекте при выборе этого пункта меню (задается только для листьев)
-        this.obj = _obj // Object (BlackJack, Head&Tails, etc.) - надо ВЫПИЛИТЬ
+    constructor(_name, _title, _message = "", _messageModifer = null, _obj = null, _parent = null, _action = null, _quit = null) {
+        this.name = String(_name) // Внутреннее имя пункта меню (например, options)
+        this.title = String(_title) // Название пункта меню (например, "Опции")
+        this.message = String(_message) // Сообщение, выводимое при выборе пункта меню (например, "Выберите ваши действия")
+        this.messageModifer = _messageModifer // Функция, возвращающая строку, добавляемую в сообщение в зависимости от свойств obj
+        this.parent = Object(_parent) // menuItem - родитель, чтобы знать куда возвращаться
+        this.action = _action // Функция, выполняемая в объекте при выборе этого пункта меню (задается только для листьев)
+        this.obj = Object(_obj) // Object (BlackJack, Head&Tails, etc.)
         this.childs = [] // menuItem - подпункты меню
+        this.quit = _quit // Функция, выполняемая при выходе из меню
     }
     addChild(_item) {
         this.childs.push(_item)
         _item.parent = this
+        _item.obj = this.obj
     }
     removeChild(item) {
         this.childs.splice(this.childs.indexOf(item), 1)
@@ -55,9 +57,11 @@ module.exports = class menuItem {
     setRoot() {
         this.parent = this
     }
-    addAction(action, obj) {
+    setQuit(func) {
+        this.quit = func
+    }
+    addAction(action) {
         this.action = action
-        this.obj = obj
     }
     subMenu() {
         let questions = []
@@ -87,8 +91,9 @@ module.exports = class menuItem {
     handle() // handler of Menu items
     {
         inquirer.prompt(this.subMenu()).then(answer => {
-            if (answer.choice === "quit") this.obj.quit()
-            else {
+            if (answer.choice === "quit") {
+                if (this.quit !== null) this.quit()
+            } else {
                 let chosenItem = this.findChildByName(answer.choice)
                 console.clear()
                 if (chosenItem.action !== null) chosenItem.action(chosenItem.obj)
