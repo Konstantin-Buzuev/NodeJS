@@ -2,7 +2,7 @@ const chalk = require("chalk")
 const inquirer = require("inquirer")
 const log = console.log
 
-module.exports = function repeat(count, symbol) {
+function repeat(count, symbol) {
     let result = ""
     for (let i = 0; i < count; i++) result += symbol
     return result

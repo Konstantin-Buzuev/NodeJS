@@ -2,10 +2,15 @@ const chalk = require("chalk")
 const inquirer = require("inquirer")
 const log = console.log
 const menuItem = require("./menu")
-const repeat = require("./menu")
 const suits = ["♠", "♣", "♦", "♥"]
 const suitNames = ["Пики", "Трефы", "Бубны", "Червы"]
 const advantages = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "В", "Д", "К", "Т"]
+
+function repeat(count, symbol) {
+    let result = ""
+    for (let i = 0; i < count; i++) result += symbol
+    return result
+}
 
 
 class Card {
@@ -45,16 +50,16 @@ class Card {
         }
         switch (this.advantage) {
             case 'В':
-                this.value = 2
+                this.value = 10
                 break
             case 'Д':
-                this.value = 3
+                this.value = 10
                 break
             case 'К':
-                this.value = 4
+                this.value = 10
                 break
             case 'Т':
-                this.value = 11
+                this.value = 1
                 break
         }
     }
@@ -107,6 +112,7 @@ class Hand {
     takeCard() {
         let card = this.deck.takeCard()
         this.cards.push(card)
+        if (+card.value === 1 && this.advantage < 11) this.advantage += 10 //Туз при сумме меньше 11
         this.advantage += +card.value
         if (this.advantage > 21) this.isBusted = true
     }
@@ -142,7 +148,7 @@ class BlackJack {
         this.difficulty = (options.difficulty !== undefined) ? options.difficulty : 1 // Уровень сложности (1-3)
         //Properties
         this.gameOver = false
-        this.playerWins = false
+        this.gameResult = 0 // 0 - player lose, 1 - deuce, 2 - player wins
     }
     newGame() {
         if (this.gameOver) {
@@ -160,40 +166,85 @@ class BlackJack {
     _playerHandLog(player, isPlayer) {
         let handString = (isPlayer) ? "Ваша рука:" : "Рука крупье:"
         let advantageString = (isPlayer) ? "Ваши очки:" : "Очки крупье:"
-        log(chalk.blueBright(handString) + chalk.whiteBright(player.getHandIcon()))
-        log(chalk.blueBright(advantageString) + chalk.greenBright(player.advantage))
+        log(chalk.blueBright(handString) + chalk.whiteBright(player.getHandIcon()) + " " + chalk.blueBright(advantageString) + chalk.greenBright(player.advantage))
     }
-    _gameOver(player) {
+    _dealerNeedCard(difficulty) {
+        let result = false
+        if (this.dealer.advantage > this.player.advantage) return false // Крупье выйграл
+        switch (difficulty) {
+            case 1:
+                if (this.dealer.advantage < this.player.advantage) result = true
+                break
+            case 2:
+                let cards = this.dealer.deck.cards
+                let winPossibility = 0
+                cards.forEach(card => {
+                    let newAdvantage = +card.value
+                    newAdvantage += +this.dealer.advantage
+                    if (newAdvantage <= 21) winPossibility += 1 / cards.length
+                })
+                if (winPossibility > 0.5) result = true
+                break
+            case 3:
+                let newAdvantage = +this.dealer.advantage
+                newAdvantage += +this.dealer.deck.cards[0].value
+                if (newAdvantage <= 21) result = true
+                break
+        }
+        return result
+    }
+    _gameIsFinished(player) {
         return (player.isBusted || player.advantage === 21) ? true : false
     }
     playerAction() {
         this.player.takeCard()
         log(chalk.blueBright("Вы берете карту:") + chalk.whiteBright(this.player.cards[this.player.cards.length - 1].icon))
         this._playerHandLog(this.player, true)
-        if (this._gameOver(this.player)) this._endGame()
+        if (this._gameIsFinished(this.player)) this._winnerDetermination()
         else if (this.deck.isEmpty()) this.deck.takeNewDeck(this.deckType)
     }
-    dealerTurn() {
-        while (dealerNeedCard(this.difficulty)) {
+    dealerAction() {
+        while (this._dealerNeedCard(this.difficulty) && !this._gameIsFinished(this.dealer)) {
             this.dealer.takeCard()
             log(chalk.blueBright("Крупье берет карту:") + chalk.whiteBright(this.dealer.cards[this.dealer.cards.length - 1].icon))
-            this._playerHandLog(this.player, true)
-            chalk.grey(repeat(30, "-"))
             this._playerHandLog(this.dealer, false)
-            if (this._gameOver(this.dealer)) this._endGame()
-            else if (this.deck.isEmpty()) this.deck.takeNewDeck(this.deckType)
+            if (this.deck.isEmpty()) this.deck.takeNewDeck(this.deckType)
         }
-        this._endGame()
+        log(chalk.grey(repeat(30, "-")))
+        this._playerHandLog(this.player, true)
+        this._winnerDetermination()
     }
-    _endGame() {
-        if (this.player.isBusted) this.playerWins = false
-        else if (this.dealer.isBusted) this.playerWins = true
+    _isBustedCase() {
+        if (this.dealer.isBusted === false && this.player.isBusted === false) return false
+        if (this.dealer.isBusted) this.gameResult = 2
+        if (this.player.isBusted) this.gameResult = 0
+        return true
+    }
+    _isBlackJackCase() {
+        if (this.dealer.advantage !== 21 && this.dealer.advantage !== 21) return false
+        if (this.dealer.advantage === 21) this.gameResult = 0
+        if (this.player.advantage === 21) this.gameResult = 2
+        return true
+    }
+    _winnerDetermination() {
+        if (this._isBustedCase() === false && this._isBlackJackCase() === false) {
+            if (this.player.advantage < this.dealer.advantage) this.gameResult = 0
+            if (this.player.advantage === this.dealer.advantage) this.gameResult = 1
+            if (this.player.advantage > this.dealer.advantage) this.gameResult = 2
+        }
 
-        if (playerWins) log(chalk.yellowBright("Поздравляем! Вы победили!"))
-        else log(chalk.grey("Сожалееем, но вы проиграли... :( "))
-        this.playerWins =
-            this.gameOver = true
-        log(this.deck.showDeck())
+        switch (this.gameResult) {
+            case 0:
+                log(chalk.grey("Сожалееем, но вы проиграли... :( "))
+                break
+            case 1:
+                log(chalk.blueBright("Ничья! Попробуйте еще раз!"))
+                break
+            case 2:
+                log(chalk.yellowBright("Поздравляем! Вы победили!"))
+                break
+        }
+        this.gameOver = true
     }
 }
 let options = {
@@ -247,6 +298,12 @@ menu.findChildByName("new").addAction(() => {
             "stand",
             "Себе!"
         ))
+        menu.findChildByName("stand").addAction(function (obj) {
+            black.dealerAction()
+            menu.findChildByName("new").removeChildByName("takeCard")
+            menu.findChildByName("new").removeChildByName("stand")
+            menu.findChildByName("new").removeChildByName("save")
+        })
     }
     if (menu.findChildByName("save") === null) {
         menu.findChildByName("new").addChild(new menuItem(
