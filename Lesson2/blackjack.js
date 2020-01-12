@@ -136,14 +136,14 @@ class Hand {
         return hand
     }
 }
-class BlackJack {
+module.exports = class BlackJack {
     constructor(options) {
         //Objects
         this.deck = (options.deckType !== undefined) ? new Deck(options.deckType) : new Deck(false)
         this.player = new Hand(this.deck)
         this.dealer = new Hand(this.deck)
         //Options
-        this.deckType = (options.deckType !== undefined) ? options.deckType : false // 36 или 52 карты
+        this.deckType = (options.deckType !== undefined) ? options.deckType : false // 52 или 36 карт
         this.deckFlush = (options.deckFlush !== undefined) ? options.deckFlush : false // Замена колоды после каждой раздачи
         this.difficulty = (options.difficulty !== undefined) ? options.difficulty : 1 // Уровень сложности (1-3)
         //Properties
@@ -196,14 +196,14 @@ class BlackJack {
     _gameIsFinished(player) {
         return (player.isBusted || player.advantage === 21) ? true : false
     }
-    playerAction() {
+    playerAction(user) {
         this.player.takeCard()
         log(chalk.blueBright("Вы берете карту:") + chalk.whiteBright(this.player.cards[this.player.cards.length - 1].icon))
         this._playerHandLog(this.player, true)
-        if (this._gameIsFinished(this.player)) this._winnerDetermination()
+        if (this._gameIsFinished(this.player)) this._winnerDetermination(user)
         else if (this.deck.isEmpty()) this.deck.takeNewDeck(this.deckType)
     }
-    dealerAction() {
+    dealerAction(user) {
         while (this._dealerNeedCard(this.difficulty) && !this._gameIsFinished(this.dealer)) {
             this.dealer.takeCard()
             log(chalk.blueBright("Крупье берет карту:") + chalk.whiteBright(this.dealer.cards[this.dealer.cards.length - 1].icon))
@@ -212,7 +212,7 @@ class BlackJack {
         }
         log(chalk.grey(repeat(30, "-")))
         this._playerHandLog(this.player, true)
-        this._winnerDetermination()
+        this._winnerDetermination(user)
     }
     _isBustedCase() {
         if (this.dealer.isBusted === false && this.player.isBusted === false) return false
@@ -226,7 +226,7 @@ class BlackJack {
         if (this.player.advantage === 21) this.gameResult = 2
         return true
     }
-    _winnerDetermination() {
+    _winnerDetermination(user) {
         if (this._isBustedCase() === false && this._isBlackJackCase() === false) {
             if (this.player.advantage < this.dealer.advantage) this.gameResult = 0
             if (this.player.advantage === this.dealer.advantage) this.gameResult = 1
@@ -245,187 +245,6 @@ class BlackJack {
                 break
         }
         this.gameOver = true
+        user.result = this.gameResult
     }
 }
-let options = {
-    deckType: false,
-    deckFlush: false,
-    difficulty: 1
-}
-let black = new BlackJack(options)
-// Добавляем главное меню
-let menu = new menuItem("main",
-    "Главное меню",
-    "Выберите ваши действия",
-    null,
-    black) // messageModifer, parent, action = null по-умолчанию
-menu.setRoot()
-menu.setQuit(() => {
-    log(chalk.yellowBright("Спасибо за игру! Заходите ещё!"))
-})
-menu.addChild(new menuItem(
-    "playGame",
-    "Сыграть в блэкджек",
-    "Выберите пункт меню"))
-menu.addChild(new menuItem( // присвоение родителя в самом методе addChild
-    "options",
-    "Опции",
-    "Выберите опцию"))
-// Добавляем Играть->Новая игра
-menu.findChildByName("playGame").addChild(new menuItem(
-    "new",
-    "Новая игра",
-    "Что скажете крупье?"
-))
-menu.findChildByName("new").addAction(() => {
-    black.newGame()
-    if (menu.findChildByName("takeCard") === null) {
-        menu.findChildByName("new").addChild(new menuItem(
-            "takeCard",
-            "Карту!"
-        ))
-        menu.findChildByName("takeCard").addAction(function (obj) {
-            black.playerAction()
-            if (black.gameOver) {
-                menu.findChildByName("new").removeChildByName("takeCard")
-                menu.findChildByName("new").removeChildByName("stand")
-                menu.findChildByName("new").removeChildByName("save")
-            }
-        })
-    }
-    if (menu.findChildByName("stand") === null) {
-        menu.findChildByName("new").addChild(new menuItem(
-            "stand",
-            "Себе!"
-        ))
-        menu.findChildByName("stand").addAction(function (obj) {
-            black.dealerAction()
-            menu.findChildByName("new").removeChildByName("takeCard")
-            menu.findChildByName("new").removeChildByName("stand")
-            menu.findChildByName("new").removeChildByName("save")
-        })
-    }
-    if (menu.findChildByName("save") === null) {
-        menu.findChildByName("new").addChild(new menuItem(
-            "save",
-            "Сохранить игру"
-        ))
-    }
-})
-
-
-menu.findChildByName("playGame").addChild(new menuItem(
-    "continue",
-    "Продолжить игру"
-))
-menu.findChildByName("playGame").addChild(new menuItem(
-    "load",
-    "Загрузить сохраненную игру"
-))
-// Добавляем опции
-menu.findChildByName("options").addChild(new menuItem(
-    "deckType",
-    "Тип колоды",
-    "Выберите тип колоды",
-    function (obj) {
-        return (obj.deckType) ? "(сейчас 52 карты)" : "(сейчас 36 карт)"
-    }))
-menu.findChildByName("options").addChild(new menuItem(
-    "deckFlush",
-    "Замена колоды",
-    "Выберите когда меняем колоду",
-    function (obj) {
-        return (obj.deckFlush) ? "(сейчас после каждой партии)" : "(сейчас по окончанию колоды)"
-    }))
-menu.findChildByName("options").addChild(new menuItem(
-    "difficulty",
-    "Уровень сложности",
-    "Выберите уровень сложности",
-    function (obj) {
-        switch (obj.difficulty) {
-            case 1:
-                return "(сейчас простой)"
-            case 2:
-                return "(сейчас сложный)"
-            case 3:
-                return "(сейчас вы играете с жуликом)"
-        }
-    }))
-menu.findChildByName("options").addChild(new menuItem(
-    "current",
-    "Показать текущие опции"
-))
-menu.findChildByName("current").addAction(function (obj) {
-    let deck = (obj.deckType) ? "54 карты" : "36 карт"
-    let flush = (obj.deckFlush) ? "После каждой партии" : "По окончанию колоды"
-    let diff = ""
-    switch (obj.difficulty) {
-        case 1:
-            diff = "Простой"
-            break
-        case 2:
-            diff = "Сложный"
-            break
-        case 3:
-            diff = "Жулик!"
-    }
-    let current = chalk.blueBright("Тип колоды: ") + chalk.greenBright(deck) + "\n" +
-        chalk.blueBright("Смена колоды: ") + chalk.greenBright(flush) + "\n" +
-        chalk.blueBright("Уровень сложности: ") + chalk.greenBright(diff)
-    log(current)
-})
-// Добавляем Опции->Тип колоды
-menu.findChildByName("deckType").addChild(new menuItem(
-    "setFull",
-    "Полная (52 карты)"
-))
-menu.findChildByName("setFull").addAction(function (obj) {
-    obj.deckType = true
-})
-menu.findChildByName("deckType").addChild(new menuItem(
-    "setShort",
-    "Обычная (36 карт)"
-))
-menu.findChildByName("setShort").addAction(function (obj) {
-    obj.deckType = false
-})
-// Добавляем Опции->Смена колоды
-menu.findChildByName("deckFlush").addChild(new menuItem(
-    "eachGame",
-    "После каждой партии"
-))
-menu.findChildByName("eachGame").addAction(function (obj) {
-    obj.deckFlush = true
-})
-menu.findChildByName("deckFlush").addChild(new menuItem(
-    "emptyDeck",
-    "Когда в этой закончатся карты"
-))
-menu.findChildByName("emptyDeck").addAction(function (obj) {
-    obj.deckFlush = false
-})
-// Добавляем Опции->Уровень сложности
-menu.findChildByName("difficulty").addChild(new menuItem(
-    "setNovice",
-    "Простой (крупье добирает до 21 или перебора)"
-))
-menu.findChildByName("setNovice").addAction(function (obj) {
-    obj.difficulty = 1
-})
-menu.findChildByName("difficulty").addChild(new menuItem(
-    "setHard",
-    "Сложный (крупье анализирует необходимость добора карты)"
-))
-menu.findChildByName("setHard").addAction(function (obj) {
-    obj.difficulty = 2
-})
-menu.findChildByName("difficulty").addChild(new menuItem(
-    "setCheater",
-    "Жулик! (крупье видит следующую карту)"
-))
-menu.findChildByName("setCheater").addAction(function (obj) {
-    obj.difficulty = 3
-})
-
-
-menu.handle()

@@ -16,14 +16,14 @@ module.exports = class menuItem {
         this.messageModifer = _messageModifer // Функция, возвращающая строку, добавляемую в сообщение в зависимости от свойств obj
         this.parent = Object(_parent) // menuItem - родитель, чтобы знать куда возвращаться
         this.action = _action // Функция, выполняемая в объекте при выборе этого пункта меню (задается только для листьев)
-        this.obj = Object(_obj) // Object (BlackJack, Head&Tails, etc.)
+        this.obj = _obj // Object (BlackJack, Head&Tails, etc.)
         this.childs = [] // menuItem - подпункты меню
         this.quit = _quit // Функция, выполняемая при выходе из меню
     }
     addChild(_item) {
         this.childs.push(_item)
         _item.parent = this
-        _item.obj = this.obj
+        if (_item.obj === null) _item.obj = this.obj
     }
     removeChild(item) {
         this.childs.splice(this.childs.indexOf(item), 1)
