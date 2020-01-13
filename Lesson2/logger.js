@@ -1,13 +1,7 @@
 const fs = require("fs")
 const log = console.log
+const Record = require("./record")
 
-module.exports = class Record {
-    constructor(name = null, game = null, res = null) {
-        this.user = name
-        this.game = game
-        this.result = res
-    }
-}
 
 class GameStats {
     constructor(gameName) {

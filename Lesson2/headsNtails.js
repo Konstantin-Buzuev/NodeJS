@@ -77,8 +77,8 @@ module.exports = class HeadsAndTails {
       message: chalk.blueBright("Может ли монета встать на ребро?")
     }]
     /*Welcome message*/
-    log(chalk.yellow.bgGreenBright('Добро пожаловать в игру "Орел и Решка"!'))
-    this._mainMenu()
+    //    log(chalk.yellow.bgGreenBright('Добро пожаловать в игру "Орел и Решка"!'))
+    //    this._mainMenu()
   }
   _quit() {
     log(chalk.yellowBright("Спасибо за игру! Заходите ещё!"))
