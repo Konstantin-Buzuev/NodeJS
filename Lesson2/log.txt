@@ -33,5 +33,25 @@
     "user": "foo",
     "game": "Heads & Tails",
     "result": "0"
+  },
+  {
+    "user": "foo",
+    "game": "BlackJack",
+    "result": 0
+  },
+  {
+    "user": "foo",
+    "game": "BlackJack",
+    "result": 0
+  },
+  {
+    "user": "foo",
+    "game": "Heads & Tails",
+    "result": 2
+  },
+  {
+    "user": "foo",
+    "game": "Heads & Tails",
+    "result": 2
   }
 ]
