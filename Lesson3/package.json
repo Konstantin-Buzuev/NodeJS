@@ -6,12 +6,15 @@
   "dependencies": {
     "chalk": "^3.0.0",
     "cheerio": "^1.0.0-rc.3",
+    "inquirer": "^7.0.3",
+    "minimist": "^1.2.0",
     "request": "^2.88.0"
   },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "news": "node news.js"
+    "news": "node news.js && exit 0",
+    "translate": "node translator.js && exit 0"
   },
   "author": "Konstantin Buzuev",
   "license": "ISC",
