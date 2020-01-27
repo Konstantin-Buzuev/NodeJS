@@ -19,9 +19,9 @@ app.use(express.static('assets'))
 app.get('/', (req, res) => {
     res.render('view', {})
 })
-app.post('/tasks', (req, res) => {
+app.post('/', (req, res) => {
     log(req.body)
-    res.send("OK")
+    res.render('view', {})
 })
 app.listen(8000, () => {
     log('Server started!')
