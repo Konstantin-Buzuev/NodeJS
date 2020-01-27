@@ -1,0 +1,19 @@
+{
+  "name": "lesson4",
+  "version": "1.0.0",
+  "description": "HomeWork#4",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "author": "Konstantin Buzuev",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^3.0.0",
+    "consolidate": "^0.15.1",
+    "express": "^4.17.1",
+    "handlebars": "^4.7.2",
+    "nodemon": "^2.0.2"
+  }
+}
