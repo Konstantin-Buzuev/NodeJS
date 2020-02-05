@@ -3,7 +3,7 @@ const path = require('path');
 const consolidate = require('consolidate');
 const mongoose = require('mongoose');
 const log = console.log
-
+// Connecting to database
 mongoose.connect('mongodb://192.168.99.100:32768/insta', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -25,22 +25,15 @@ app.use(express.urlencoded({
 // Опишем статику для стилей. Аналогично можно расписать для других статичных ресурсов.
 app.use('/styles', express.static(path.resolve(__dirname, 'assets/css')));
 
-
 // Роутинг
 // описываем общий обработчик для всех роутов
-app.all('/', (req, res, next) => {
-    console.log('all');
-    next();
-});
+// app.all('/', (req, res, next) => {
+//     console.log('all');
+//     next();
+// });
 app.get('/', (req, res) => {
     res.sendFile(path.resolve(__dirname, 'index.html'));
 });
-// app.get('/user', (req, res) => {
-//     res.render('user', {
-//         fullName: 'John Snow',
-//         achievements: ['Главный сторож стены', 'Winter is coming!'],
-//     });
-// });
 
 const User = require('./models/user');
 
@@ -63,7 +56,6 @@ app.post('/users', async (req, res) => {
             savedUsers.push(savedUser);
         }
         res.json(savedUsers)
-
     } else {
         const user = new User(req.body);
         const savedUser = await user.save();
@@ -71,29 +63,19 @@ app.post('/users', async (req, res) => {
     }
 });
 
-app.put('/users', async (req, res) => {
+app.put('/users/:id', async (req, res) => {
     const user = new User(req.body);
+    user._id = req.params.id;
     const updatedUser = await user.update(user)
-    res.json(updatedUser);
+    res.json(user);
+})
+
+app.delete('/users/:id', async (req, res) => {
+    const user = await User.findById(req.params.id);
+    const deletedUser = await user.remove();
+    res.json(deletedUser);
 })
 
 app.listen(8000, () => {
     console.log('Server has been started!');
 });
-// app.post('/users', async (req, res) => {
-//     const user = new User(req.body);
-//     const savedUser = await user.save();
-//     res.json(savedUser);
-// });
-// app.post('/tasks', (req, res) => {
-//     console.log(req.body);
-//     res.send('OK');
-// });
-// // написание собственного middleware
-// app.use((req, res, next) => {
-//     console.log('middleware');
-//     req.user = {
-//         name: 'John'
-//     };
-//     next(); // res.redirect('/...');
-// });
