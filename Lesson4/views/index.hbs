@@ -16,32 +16,10 @@
 <body>
     <div class="container-fluid">
         <div class="container">
-            <header>
-                <form action="/" method="POST" class="b-settings">
-                    <div class="b-settings__item b-settings__item_margin">
-                        <span>Новостной сайт:</span>
-                        <select name="news" id="site" class="b-settings__combo">
-                            <option value="ria">РИА Новости</option>
-                        </select>
-                    </div>
-                    <div class="b-settings__item b-settings__item_margin">
-                        <span>Категория новостей:</span>
-                        <select name="category" id="category" class="b-settings__combo">
-                            <option value="science">Наука</option>
-                        </select>
-                    </div>
-                    <div class="b-settings__item b-settings__item_margin">
-                        <span>Количество новостей:</span>
-                        <select name="count" id="count" class="b-settings__combo">
-                            <option value="first">Самая свежая новость</option>
-                            <option value="ten">Посление 10 новостей</option>
-                            <option value="all">Все новости по теме</option>
-                        </select>
-                    </div>
-                    <input type="submit" value="Получить новости!" class="b-settings__submit b-settings__submit_margin">
-                </form>
-            </header>
-            <main></main>
+            {{> menu}}
+            <main>
+                {{>news}}
+            </main>
         </div>
     </div>
     <!-- Optional JavaScript -->
