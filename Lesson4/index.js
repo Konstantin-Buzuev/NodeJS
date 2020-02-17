@@ -5,6 +5,7 @@ const hbs = require('handlebars')
 const fs = require('fs')
 const request = require('request')
 const cheerio = require('cheerio')
+const cookieParser = require('cookie-parser')
 const log = console.log
 const app = express()
 let Agency = require('./models/agency')
@@ -22,12 +23,18 @@ app.use(express.urlencoded({
 
 app.use(express.static('views'))
 app.use(express.static('assets'))
+app.use(cookieParser())
 
 
 app.get('/', (req, res) => {
-    if (req.query.news === undefined) {
-        res.render('index', {})
-    } else grabNews(req.query).then(news => {
+    let params = {}
+    params.news = !req.query.news ? req.cookies.news : req.query.news
+    params.category = !req.query.category ? req.cookies.category : req.query.category
+    params.count = !req.query.count ? req.cookies.count : req.query.count
+    if (!params.news ||
+        !params.category ||
+        !params.count) res.render('index', {})
+    else grabNews(params).then(news => {
         res.render('index', {
             news: news
         })
@@ -35,9 +42,12 @@ app.get('/', (req, res) => {
 })
 app.post('/', (req, res) => {
     grabNews(req.body).then(news => {
-        res.render('index', {
-            news: news
-        })
+        res.cookie("news", req.body.news)
+            .cookie("category", req.body.category)
+            .cookie("count", req.body.count)
+            .render('index', {
+                news: news
+            })
     })
 
 })
