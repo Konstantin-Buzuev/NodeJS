@@ -1,6 +1,5 @@
 const passport = require('passport')
 const Strategy = require('passport-local').Strategy
-
 const User = require('../models/user')
 
 passport.use(new Strategy(async (username, password, done) => {
@@ -14,7 +13,6 @@ passport.use(new Strategy(async (username, password, done) => {
 
     const plainUser = JSON.parse(JSON.stringify(user))
     delete plainUser.password
-
     done(null, plainUser) // req.user
 }))
 
