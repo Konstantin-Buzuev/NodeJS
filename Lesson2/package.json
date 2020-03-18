@@ -12,6 +12,6 @@
   "dependencies": {
     "chalk": "^3.0.0",
     "inquirer": "^7.0.1",
-    "minimist": "^1.2.0"
+    "minimist": "^1.2.2"
   }
 }
